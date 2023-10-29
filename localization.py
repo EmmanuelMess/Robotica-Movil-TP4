@@ -32,6 +32,8 @@ def localize(env, policy, filt, x0, num_steps, plot=False):
         z_real = obs_real[i, :].reshape((-1, 1))
         marker_id = env.get_marker_id(i)
 
+        print("Real: ", x_real.reshape((3,)))
+
         if filt is None:
             mean, cov = x_real, np.eye(3)
         else:

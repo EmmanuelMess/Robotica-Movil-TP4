@@ -31,8 +31,36 @@ class ParticleFilter:
         z: landmark observation
         marker_id: landmark ID
         """
-        # YOUR IMPLEMENTATION HERE
-        mean, cov = self.mean_and_variance(self.particles)
+
+        self.particles[:, 2] = np.mod(self.particles[:, 2] + np.pi + u[2], 2 * np.pi) - np.pi
+
+        def update(theta):
+            matrix = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+            return np.matmul(matrix, u[:2]).reshape((2,))
+
+        rotatedU = np.array([update(theta) for theta in self.particles[:, 2]])
+
+        self.particles[:, :2] = self.particles[:, :2] + rotatedU
+
+        newWeights = []
+
+        for particle in self.particles:
+            zParticle = env.observe(particle, marker_id)
+            weight = (-np.abs(z - zParticle)*100).reshape((1,))[0]
+            newWeights.append(weight)
+
+        print("Best match: ", self.particles[np.argmax(newWeights)])
+
+        newWeights = self.weights * np.array(newWeights)
+        W = np.sum(newWeights)
+
+        self.weights = newWeights / W
+
+        new_particles, _ = self.resample(self.particles, self.weights)
+
+        print("Thinking: ", np.mean(new_particles, axis=0))
+
+        mean, cov = self.mean_and_variance(new_particles)
         return mean, cov
 
     def resample(self, particles, weights):
@@ -43,7 +71,9 @@ class ParticleFilter:
         weights: (n,) array of weights
         """
         new_particles, new_weights = particles, weights
-        # YOUR IMPLEMENTATION HERE
+
+        new_particles = np.random.default_rng(seed=0).choice(particles, self.num_particles, replace=True, p=new_weights)
+
         return new_particles, new_weights
 
     def mean_and_variance(self, particles):
