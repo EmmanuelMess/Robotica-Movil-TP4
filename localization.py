@@ -32,8 +32,6 @@ def localize(env, policy, filt, x0, num_steps, plot=False):
         z_real = obs_real[i, :].reshape((-1, 1))
         marker_id = env.get_marker_id(i)
 
-        print("Real: ", x_real.reshape((3,)))
-
         if filt is None:
             mean, cov = x_real, np.eye(3)
         else:
@@ -48,6 +46,7 @@ def localize(env, policy, filt, x0, num_steps, plot=False):
             plot_path(env, states_noisefree[:i+1, :], 'g', 0.5)
             plot_path(env, states_real[:i+1, :], 'b')
             if filt is not None:
+                filt.show(env, marker_id)
                 plot_path(env, states_filter[:i+1, :2], 'r')
             fig.canvas.flush_events()
 

@@ -2,7 +2,9 @@
 """
 
 import numpy as np
+import scipy
 
+import utils
 from utils import minimized_angle
 
 
@@ -32,11 +34,14 @@ class ParticleFilter:
         marker_id: landmark ID
         """
 
-        self.particles[:, 2] = np.mod(self.particles[:, 2] + np.pi + u[2], 2 * np.pi) - np.pi
+        u = u.copy().T[0]
+
+        for i in range(self.particles.shape[0]):
+            self.particles[i, 2] = utils.minimized_angle(self.particles[i, 2] + u[2])
 
         def update(theta):
-            matrix = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
-            return np.matmul(matrix, u[:2]).reshape((2,))
+            matrix = np.array([[-np.sin(theta), np.cos(theta)], [ np.cos(theta), np.sin(theta)]])
+            return matrix@u[:2]
 
         rotatedU = np.array([update(theta) for theta in self.particles[:, 2]])
 
@@ -46,21 +51,18 @@ class ParticleFilter:
 
         for particle in self.particles:
             zParticle = env.observe(particle, marker_id)
-            weight = (-np.abs(z - zParticle)*100).reshape((1,))[0]
+            diff = utils.minimized_angle(z - zParticle)
+            weight = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=1))
             newWeights.append(weight)
-
-        print("Best match: ", self.particles[np.argmax(newWeights)])
 
         newWeights = self.weights * np.array(newWeights)
         W = np.sum(newWeights)
 
         self.weights = newWeights / W
 
-        new_particles, _ = self.resample(self.particles, self.weights)
+        self.particles, _ = self.resample(self.particles, self.weights)
 
-        print("Thinking: ", np.mean(new_particles, axis=0))
-
-        mean, cov = self.mean_and_variance(new_particles)
+        mean, cov = self.mean_and_variance(self.particles)
         return mean, cov
 
     def resample(self, particles, weights):
@@ -70,11 +72,14 @@ class ParticleFilter:
         particles: (n x 3) matrix of poses
         weights: (n,) array of weights
         """
-        new_particles, new_weights = particles, weights
+        new_particles = np.random.default_rng(seed=0).choice(particles, self.num_particles, replace=True, p=weights)
 
-        new_particles = np.random.default_rng(seed=0).choice(particles, self.num_particles, replace=True, p=new_weights)
+        return new_particles, weights
 
-        return new_particles, new_weights
+    def show(self, env, marker_id):
+        for particle in self.particles:
+            zParticle = env.observe(particle, marker_id)
+            self.plot_particle(env, particle, zParticle.reshape((1,)))
 
     def mean_and_variance(self, particles):
         """Compute the mean and covariance matrix for a set of equally-weighted
@@ -94,3 +99,20 @@ class ParticleFilter:
         cov = np.dot(zero_mean.T, zero_mean) / self.num_particles
 
         return mean.reshape((-1, 1)), cov
+
+    def plot_particle(self, env, x, z, radius=5):
+        """Plot the robot on the soccer field."""
+        ax = env.get_figure().gca()
+        utils.plot_circle(ax, x[:2], radius=radius, facecolor='r')
+
+        # robot orientation
+        ax.plot(
+            [x[0], x[0] + np.cos(x[2]) * (radius + 5)],
+            [x[1], x[1] + np.sin(x[2]) * (radius + 5)],
+            'k')
+
+        # observation
+        ax.plot(
+            [x[0], x[0] + np.cos(x[2] + z[0]) * 100],
+            [x[1], x[1] + np.sin(x[2] + z[0]) * 100],
+            'r', linewidth=0.5)
