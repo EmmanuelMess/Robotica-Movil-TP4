@@ -54,7 +54,11 @@ class Field:
         """Compute the Jacobian of the dynamics with respect to the state."""
         prev_x, prev_y, prev_theta = x.ravel()
         rot1, trans, rot2 = u.ravel()
-        # YOUR IMPLEMENTATION HERE
+        # ekf god
+        derived_jacobian_G = np.array([[1,0,-trans*np.sin(prev_theta + rot1)],
+                                       [0,1,trans*np.cos(prev_theta+rot2)],
+                                       [0,0,1]])
+        return derived_jacobian_G
 
     def V(self, x, u):
         """Compute the Jacobian of the dynamics with respect to the control."""
