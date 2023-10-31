@@ -8,8 +8,8 @@ from utils import minimized_angle
 
 class ExtendedKalmanFilter:
     def __init__(self, mean, cov, alphas, beta):
-        self.alphas = alphas
-        self.beta = beta
+        self.alphas = alphas  # Alphas para modelar el noise
+        self.beta = beta  # Qt
 
         self._init_mean = mean
         self._init_cov = cov
@@ -25,9 +25,9 @@ class ExtendedKalmanFilter:
 
         u: action
         z: landmark observation
-        marker_id: landmark ID
+        marker_id: landmark ID ("Feature observado", cantidad 1)
         """
-        #________________Update Step____________________
+        #________________Prediction Step____________________
         # self.mu es el mu en t-1, creo G y V (prev_theta del self.mu.ravel() te da el angulo en el t-1)
         Gt = env.G(self.mu, u)  # u = (rot1, rtrans, rot2)
         Vt = env.V(self.mu, u)  # u = (rot1, rtrans, rot2)
@@ -36,5 +36,6 @@ class ExtendedKalmanFilter:
             return env.noise_from_motion(u, alphas)
         Mt = M(u,self.alphas)  # Noise matrix 
         next_mu = env.forward(self.mu,u)  # Update mu, next_mu = mu + [rot_trans*cos(prev_theta+rot1),rot_trans*sin(prev_theta+rot1),rot1+rot2 ]
-
+        next_sigma = (Gt@self.sigma@Gt.T) + (Vt@Mt@Vt.T)
+        #________________Correction Step____________________
         return self.mu, self.sigma
