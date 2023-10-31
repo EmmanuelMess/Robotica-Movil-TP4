@@ -27,5 +27,14 @@ class ExtendedKalmanFilter:
         z: landmark observation
         marker_id: landmark ID
         """
-        # YOUR IMPLEMENTATION HERE
+        #________________Update Step____________________
+        # self.mu es el mu en t-1, creo G y V (prev_theta del self.mu.ravel() te da el angulo en el t-1)
+        Gt = env.G(self.mu, u)  # u = (rot1, rtrans, rot2)
+        Vt = env.V(self.mu, u)  # u = (rot1, rtrans, rot2)
+        def M(u,alphas):
+            # M is M
+            return env.noise_from_motion(u, alphas)
+        Mt = M(u,self.alphas)  # Noise matrix 
+        next_mu = env.forward(self.mu,u)  # Update mu, next_mu = mu + [rot_trans*cos(prev_theta+rot1),rot_trans*sin(prev_theta+rot1),rot1+rot2 ]
+
         return self.mu, self.sigma
