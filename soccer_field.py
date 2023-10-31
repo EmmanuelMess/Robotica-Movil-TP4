@@ -64,12 +64,16 @@ class Field:
         """Compute the Jacobian of the dynamics with respect to the control."""
         prev_x, prev_y, prev_theta = x.ravel()
         rot1, trans, rot2 = u.ravel()
-        # YOUR IMPLEMENTATION HERE
+        # ez
+        derived_jacobian_V = np.array([[-trans*np.sin(prev_theta+rot1), np.cos(prev_theta+rot1),0],
+                                       [trans*np.cos(prev_theta+rot1),np.sin(prev_theta+rot1), 0],
+                                       [1,0,1]])
+        return derived_jacobian_V
 
     def H(self, x, marker_id):
         """Compute the Jacobian of the observation with respect to the state."""
         prev_x, prev_y, prev_theta = x.ravel()
-        # YOUR IMPLEMENTATION HERE
+        # Me mataste pibe
 
     def forward(self, x, u):
         """Compute next state, given current state and action.
