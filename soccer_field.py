@@ -79,6 +79,8 @@ class Field:
         q = (q_x)**2 + (q_y)**2
         sqrt_q = np.sqrt([q])[0]
         derived_jacobian_H = np.array([[-(q_x/sqrt_q), -(q_y/sqrt_q)],[q_y/q, -(q_x/1),-1]])
+        return derived_jacobian_H
+    
     def forward(self, x, u):
         """Compute next state, given current state and action.
 
