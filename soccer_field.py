@@ -71,10 +71,14 @@ class Field:
         return derived_jacobian_V
 
     def H(self, x, marker_id):
-        """Compute the Jacobian of the observation with respect to the state."""
+        """Compute the Jacobian of the observation with respect to the prev state (in correction from mu with upperline)."""
         prev_x, prev_y, prev_theta = x.ravel()
         # Me mataste pibe
-
+        q_x = self.MARKER_X_POS[marker_id] - prev_x
+        q_y = self.MARKER_Y_POS[marker_id] - prev_y
+        q = (q_x)**2 + (q_y)**2
+        sqrt_q = np.sqrt([q])[0]
+        derived_jacobian_H = np.array([[-(q_x/sqrt_q), -(q_y/sqrt_q)],[q_y/q, -(q_x/1),-1]])
     def forward(self, x, u):
         """Compute next state, given current state and action.
 
