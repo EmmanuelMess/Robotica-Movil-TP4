@@ -70,7 +70,7 @@ class Field:
                                        [1,0,1]])
         return derived_jacobian_V
 
-    def H(self, x, marker_id):
+    def H(self, x, marker_id): # x state ---> always has been mu_upperline
         """Compute the Jacobian of the observation with respect to the prev state (in correction from mu with upperline)."""
         prev_x, prev_y, prev_theta = x.ravel()
         # Me mataste pibe
