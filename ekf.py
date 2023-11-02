@@ -69,5 +69,5 @@ class ExtendedKalmanFilter:
         marker_id: landmark ID ("Feature observado", cantidad 1)
         """
         next_mu, next_sigma = self._prediction_step(env,u)  # Predicted mu and sigma (not corrected yet)
-        self.mu, self.sigma = self._correction_step(env, next_mu, next_sigma, z, [(marker_id,z_bearing_angle)])  # Correction over predicted mu and sigma 
+        self.mu, self.sigma = self._correction_step(env, next_mu, next_sigma, [(marker_id,z_bearing_angle)])  # Correction over predicted mu and sigma 
         return self.mu, self.sigma
