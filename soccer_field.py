@@ -78,8 +78,10 @@ class Field:
         q_y = self.MARKER_Y_POS[marker_id] - prev_y
         q = (q_x)**2 + (q_y)**2
         sqrt_q = np.sqrt([q])[0]
-        derived_jacobian_H = np.array([[-(q_x/sqrt_q), -(q_y/sqrt_q)],[q_y/q, -(q_x/1),-1]])
-        return derived_jacobian_H
+        derived_jacobian_H = np.array([[-q_x/sqrt_q, -q_y/sqrt_q,0], # Dist
+                                       [q_y/q, -q_x/q,-1]]) # Angle, solo nos interesa el bearing angle el estado observado es un angulo
+        return np.array([derived_jacobian_H[1]])
+
     
     def forward(self, x, u):
         """Compute next state, given current state and action.
