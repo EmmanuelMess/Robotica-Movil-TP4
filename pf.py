@@ -34,25 +34,26 @@ class ParticleFilter:
         marker_id: landmark ID
         """
 
-        u = u.copy().T[0]
+        def update(x):
+            prev_x, prev_y, prev_theta = x
+            rot1, trans, rot2 = u
 
-        for i in range(self.particles.shape[0]):
-            self.particles[i, 2] = utils.minimized_angle(self.particles[i, 2] + u[2])
+            theta = prev_theta + rot1
+            x_next = np.array([
+                prev_x + trans * np.cos(theta),
+                prev_y + trans * np.sin(theta),
+                minimized_angle(theta + rot2)])
 
-        def update(theta):
-            matrix = np.array([[-np.sin(theta), np.cos(theta)], [ np.cos(theta), np.sin(theta)]])
-            return matrix@u[:2]
+            return x_next
 
-        rotatedU = np.array([update(theta) for theta in self.particles[:, 2]])
-
-        self.particles[:, :2] = self.particles[:, :2] + rotatedU
+        self.particles[:] = np.array([update(x).reshape((-1,)) for x in self.particles[:]])
 
         newWeights = []
 
         for particle in self.particles:
             zParticle = env.observe(particle, marker_id)
             diff = utils.minimized_angle(z - zParticle)
-            weight = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=1))
+            weight = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=2))
             newWeights.append(weight)
 
         newWeights = self.weights * np.array(newWeights)

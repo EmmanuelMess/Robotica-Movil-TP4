@@ -71,3 +71,6 @@ class ExtendedKalmanFilter:
         next_mu, next_sigma = self._prediction_step(env,u)  # Predicted mu and sigma (not corrected yet)
         self.mu, self.sigma = self._correction_step(env, next_mu, next_sigma, [(marker_id,z_bearing_angle)])  # Correction over predicted mu and sigma 
         return self.mu, self.sigma
+
+    def show(self, env, marker_id):
+        pass
