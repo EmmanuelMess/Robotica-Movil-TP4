@@ -34,29 +34,22 @@ class ParticleFilter:
         marker_id: landmark ID
         """
 
-        def update(x):
-            prev_x, prev_y, prev_theta = x
-            rot1, trans, rot2 = u
+        rot1, trans, rot2 = u
 
-            theta = prev_theta + rot1
-            x_next = np.array([
-                prev_x + trans * np.cos(theta),
-                prev_y + trans * np.sin(theta),
-                minimized_angle(theta + rot2)])
+        theta = self.particles[:, 2] + rot1
+        self.particles[:, 0] = self.particles[:, 0] + trans * np.cos(theta)
+        self.particles[:, 1] = self.particles[:, 1] + trans * np.sin(theta)
+        for i in range(self.particles.shape[0]):
+            self.particles[i, 2] = minimized_angle(theta[i] + rot2)
 
-            return x_next
+        newWeights = np.zeros((self.particles.shape[0],))
 
-        self.particles[:] = np.array([update(x).reshape((-1,)) for x in self.particles[:]])
-
-        newWeights = []
-
-        for particle in self.particles:
-            zParticle = env.observe(particle, marker_id)
+        for i in range(self.particles.shape[0]):
+            zParticle = env.observe(self.particles[i], marker_id)
             diff = utils.minimized_angle(z - zParticle)
-            weight = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=2))
-            newWeights.append(weight)
+            newWeights[i] = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=2))
 
-        newWeights = self.weights * np.array(newWeights)
+        newWeights = self.weights * newWeights
         W = np.sum(newWeights)
 
         self.weights = newWeights / W

@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
         AVERAGING_RUNS = 1
         RS = [1 / 64, 1 / 16, 1 / 4, 4, 16, 64]
-        PARTICLES = [20, 50, 500]
+        PARTICLES = [20, 50, 100, 500]
 
         if args.filter_type == 'pf':
             mean_position_errors = [[] for _ in PARTICLES]
@@ -189,8 +189,10 @@ if __name__ == '__main__':
                 plt.ylabel('Error')
                 plt.gca().set_xscale('log')
                 plt.gca().set_yscale('log')
-                for i, y in enumerate(mean_position_errors):
-                    plt.plot(RS, y, label=f"Error de posicion medio, {PARTICLES[i]} particulas")
+                for y in mean_position_errors:
+                    if y != 100:
+                        continue
+                    plt.plot(RS, y, label=f"Error de posicion medio")
                 plt.savefig('plots/pf-a.png')
                 plt.clf()
 
@@ -199,12 +201,27 @@ if __name__ == '__main__':
                 plt.ylabel('Error')
                 plt.gca().set_xscale('log')
                 plt.gca().set_yscale('log')
+                plt.plot(RS, mean_position_errors[PARTICLES.index(100)], label=f"Error de posicion medio")
+                plt.plot(RS, aneess[PARTICLES.index(100)], label=f"ANEES")
+                plt.legend()
+                plt.savefig('plots/pf-c.png')
+                plt.clf()
+
+                plt.title("Error de posicion medio y ANEES sobre valores de r")
+                plt.xlabel('r')
+                plt.ylabel('Error')
+                plt.gca().set_xscale('log')
+                plt.gca().set_yscale('log')
                 for i, y in enumerate(mean_position_errors):
+                    if i == PARTICLES.index(100):
+                        continue
                     plt.plot(RS, y, label=f"Error de posicion medio, {PARTICLES[i]} particulas")
                 for i, y in enumerate(aneess):
+                    if i == PARTICLES.index(100):
+                        continue
                     plt.plot(RS, y, label=f"ANEES, {PARTICLES[i]} particulas")
                 plt.legend()
-                plt.savefig('plots/pf-b.png')
+                plt.savefig('plots/pf-d.png')
                 plt.clf()
 
         else:
@@ -234,7 +251,7 @@ if __name__ == '__main__':
                 plt.gca().set_xscale('log')
                 plt.gca().set_yscale('log')
                 plt.plot(RS, mean_position_errors)
-                plt.savefig('plots/ekf-a.png')
+                plt.savefig('plots/ekf-b.png')
                 plt.clf()
 
                 plt.title("Error de posicion medio y ANEES sobre valores de r")
@@ -245,7 +262,7 @@ if __name__ == '__main__':
                 plt.plot(RS, mean_position_errors, label="Error de posicion medio")
                 plt.plot(RS, aneess, label="ANEES")
                 plt.legend()
-                plt.savefig('plots/ekf-b.png')
+                plt.savefig('plots/ekf-c.png')
                 plt.clf()
 
 
