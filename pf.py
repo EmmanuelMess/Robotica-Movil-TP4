@@ -47,7 +47,7 @@ class ParticleFilter:
         for i in range(self.particles.shape[0]):
             zParticle = env.observe(self.particles[i], marker_id)
             diff = utils.minimized_angle(z - zParticle)
-            newWeights[i] = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=2))
+            newWeights[i] = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=0.5))
 
         newWeights = self.weights * newWeights
         W = np.sum(newWeights)

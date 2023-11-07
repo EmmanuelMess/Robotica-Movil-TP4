@@ -157,7 +157,7 @@ if __name__ == '__main__':
         if args.plot:
             print("--plot ignored!")
 
-        AVERAGING_RUNS = 1
+        AVERAGING_RUNS = 10
         RS = [1 / 64, 1 / 16, 1 / 4, 4, 16, 64]
         PARTICLES = [20, 50, 100, 500]
 
@@ -189,11 +189,8 @@ if __name__ == '__main__':
                 plt.ylabel('Error')
                 plt.gca().set_xscale('log')
                 plt.gca().set_yscale('log')
-                for y in mean_position_errors:
-                    if y != 100:
-                        continue
-                    plt.plot(RS, y, label=f"Error de posicion medio")
-                plt.savefig('plots/pf-a.png')
+                plt.plot(RS, mean_position_errors[PARTICLES.index(100)], label=f"Error de posicion medio")
+                plt.savefig('plots/pf-b.png')
                 plt.clf()
 
                 plt.title("Error de posicion medio y ANEES sobre valores de r")
