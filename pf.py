@@ -34,26 +34,18 @@ class ParticleFilter:
         marker_id: landmark ID
         """
 
-        rot1, trans, rot2 = u
-
-        theta = self.particles[:, 2] + rot1
-        self.particles[:, 0] = self.particles[:, 0] + trans * np.cos(theta)
-        self.particles[:, 1] = self.particles[:, 1] + trans * np.sin(theta)
         for i in range(self.particles.shape[0]):
-            self.particles[i, 2] = minimized_angle(theta[i] + rot2)
+            uNoisy = env.sample_noisy_action(u, self.alphas)
+            self.particles[i] = env.forward(self.particles[i].reshape((3, 1)), uNoisy).reshape((3,))
 
         newWeights = np.zeros((self.particles.shape[0],))
 
         for i in range(self.particles.shape[0]):
-            zParticle = env.observe(self.particles[i], marker_id)
+            zParticle = env.sample_noisy_observation(self.particles[i], marker_id, self.beta)
             diff = utils.minimized_angle(z - zParticle)
-            newWeights[i] = np.float64(scipy.stats.norm.pdf(diff, loc=0, scale=0.5))
+            newWeights[i] = np.float64(env.likelihood(diff, self.beta))
 
-        newWeights = self.weights * newWeights
-        W = np.sum(newWeights)
-
-        self.weights = newWeights / W
-
+        self.weights = newWeights / np.sum(newWeights)
         self.particles, _ = self.resample(self.particles, self.weights)
 
         mean, cov = self.mean_and_variance(self.particles)
