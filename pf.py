@@ -38,15 +38,19 @@ class ParticleFilter:
             uNoisy = env.sample_noisy_action(u, self.alphas)
             self.particles[i] = env.forward(self.particles[i].reshape((3, 1)), uNoisy).reshape((3,))
 
-        newWeights = np.zeros((self.particles.shape[0],))
+        newWeights = np.zeros((self.particles.shape[0],), dtype=np.float64)
 
         for i in range(self.particles.shape[0]):
             zParticle = env.sample_noisy_observation(self.particles[i], marker_id, self.beta)
             diff = utils.minimized_angle(z - zParticle)
-            newWeights[i] = np.float64(env.likelihood(diff, self.beta))
+            newWeights[i] = env.likelihood(diff, self.beta)
+
+        if np.max(newWeights) < 1:
+            newWeights = newWeights * (1 / np.max(newWeights))  # Previene problemas numericos
+
+        newWeights[newWeights < 1e-10] = 1e-10
 
         self.weights = newWeights / np.sum(newWeights)
-        self.weights = self.weights if np.sum(newWeights) != np.float64(0) else np.ones((self.particles.shape[0],)) / self.num_particles
         self.particles, _ = self.resample(self.particles, self.weights)
 
         mean, cov = self.mean_and_variance(self.particles)
