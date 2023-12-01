@@ -46,6 +46,7 @@ class ParticleFilter:
             newWeights[i] = np.float64(env.likelihood(diff, self.beta))
 
         self.weights = newWeights / np.sum(newWeights)
+        self.weights = self.weights if np.sum(newWeights) != np.float64(0) else np.ones((self.particles.shape[0],)) / self.num_particles
         self.particles, _ = self.resample(self.particles, self.weights)
 
         mean, cov = self.mean_and_variance(self.particles)
